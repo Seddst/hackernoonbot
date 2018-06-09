@@ -6,3 +6,4 @@ urllib3==1.22
 flask
 telepot
 gunicorn
+telegram
