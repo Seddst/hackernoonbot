@@ -1,74 +1,56 @@
-import requests
-import datetime
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Simple Bot to reply to Telegram messages.
+This is built on the API wrapper, see echobot2.py to see the same example built
+on the telegram.ext bot framework.
+This program is dedicated to the public domain under the CC0 license.
+"""
+import logging
+import telegram
+from telegram.error import NetworkError, Unauthorized
+from time import sleep
 
 
-class BotHandler:
-
-    def __init__(self, token):
-        self.token = token
-        self.api_url = "https://api.telegram.org/bot{}/".format(token)
-
-    def get_updates(self, offset=None, timeout=30):
-        method = 'getUpdates'
-        params = {'timeout': timeout, 'offset': offset}
-        resp = requests.get(self.api_url + method, params)
-        result_json = resp.json()['result']
-        return result_json
-
-    def send_message(self, chat_id, text):
-        params = {'chat_id': chat_id, 'text': text}
-        method = 'sendMessage'
-        resp = requests.post(self.api_url + method, params)
-        return resp
-
-    def get_last_update(self):
-        get_result = self.get_updates()
-
-        if len(get_result) > 0:
-            last_update = get_result[-1]
-        else:
-            last_update = get_result[len(get_result)]
-
-        return last_update
-
-
-greet_bot = BotHandler(token="602671114:AAFO7AajY4QtufjBgYG7y8dQb4IcpeLgWss")
-greetings = ('hello', 'hi', 'greetings', 'sup')
-now = datetime.datetime.now()
+update_id = None
 
 
 def main():
-    new_offset = None
-    today = now.day
-    hour = now.hour
+    """Run the bot."""
+    global update_id
+    # Telegram Bot Authorization Token
+    bot = telegram.Bot('
+602671114:AAFO7AajY4QtufjBgYG7y8dQb4IcpeLgWss')
+
+    # get the first pending update_id, this is so we can skip over it in case
+    # we get an "Unauthorized" exception.
+    try:
+        update_id = bot.get_updates()[0].update_id
+    except IndexError:
+        update_id = None
+
+    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     while True:
-        greet_bot.get_updates(new_offset)
+        try:
+            echo(bot)
+        except NetworkError:
+            sleep(1)
+        except Unauthorized:
+            # The user has removed or blocked the bot.
+            update_id += 1
 
-        last_update = greet_bot.get_last_update()
 
-        last_update_id = last_update['update_id']
-        last_chat_text = last_update['message']['text']
-        last_chat_id = last_update['message']['chat']['id']
-        last_chat_name = last_update['message']['chat']['first_name']
+def echo(bot):
+    """Echo the message the user sent."""
+    global update_id
+    # Request updates after the last update_id
+    for update in bot.get_updates(offset=update_id, timeout=10):
+        update_id = update.update_id + 1
 
-        if last_chat_text.lower() in greetings and today == now.day and 6 <= hour < 12:
-            greet_bot.send_message(last_chat_id, 'Good Morning  {}'.format(last_chat_name))
-            today += 1
-
-        elif last_chat_text.lower() in greetings and today == now.day and 12 <= hour < 17:
-            greet_bot.send_message(last_chat_id, 'Good Afternoon {}'.format(last_chat_name))
-            today += 1
-
-        elif last_chat_text.lower() in greetings and today == now.day and 17 <= hour < 23:
-            greet_bot.send_message(last_chat_id, 'Good Evening  {}'.format(last_chat_name))
-            today += 1
-
-        new_offset = last_update_id + 1
+        if update.message:  # your bot can receive updates without messages
+            # Reply to the message
+            update.message.reply_text(update.message.text)
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        exit()
+    main()
