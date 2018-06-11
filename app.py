@@ -11,7 +11,7 @@ except ImportError:
 app = Flask(__name__)
 TOKEN = os.environ['602671114:AAFO7AajY4QtufjBgYG7y8dQb4IcpeLgWss']  # put your token in heroku app as environment variable
 SECRET = '/bot' + TOKEN
-URL = '' #  paste the url of your application
+URL = 'https://hackernoonbot.herokuapp.com/' #  paste the url of your application
 
 UPDATE_QUEUE = Queue()
 BOT = telepot.Bot(TOKEN)
