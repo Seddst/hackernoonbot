@@ -3,7 +3,7 @@ chardet==3.0.4
 idna==2.6
 requests==2.18.4
 urllib3==1.22
-flask
-telepot
-gunicorn
-telegram
+flask==1.0.2
+telepot==1.2.7
+gunicorn==19.8.1
+
