@@ -7,4 +7,3 @@ flask
 telepot
 gunicorn
 telegram
-telegram error
