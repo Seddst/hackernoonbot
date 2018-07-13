@@ -1,3 +1,4 @@
+import telepot
 from xml.etree import cElementTree
 import requests
 def parse_planetpy_rss():
